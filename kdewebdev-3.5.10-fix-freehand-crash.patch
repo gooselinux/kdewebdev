@@ -1,0 +1,48 @@
+diff -up kdewebdev-3.5.10/kimagemapeditor/drawzone.cpp.fix-freehand-crash kdewebdev-3.5.10/kimagemapeditor/drawzone.cpp
+--- kdewebdev-3.5.10/kimagemapeditor/drawzone.cpp.fix-freehand-crash	2005-09-10 10:23:17.000000000 +0200
++++ kdewebdev-3.5.10/kimagemapeditor/drawzone.cpp	2011-03-08 17:57:46.032615431 +0100
+@@ -347,15 +347,16 @@ void DrawZone::contentsMousePressEvent(Q
+ 				case KImageMapEditor::Rectangle : currentAction=DrawRectangle; break;
+ 				case KImageMapEditor::Circle : currentAction=DrawCircle; break;
+ 				case KImageMapEditor::Polygon :
+-  					currentAction=DrawPolygon;
+-      			currentArea->addCoord(drawStart);
+-      			currentSelectionPoint=currentArea->selectionPoints()->last();
+-      			break;
+-        case KImageMapEditor::Freehand :
+-            currentAction=DrawFreehand;
+-      			//currentArea->addCoord(drawStart);
+-      			currentArea->setFinished(false);
+- 			  		break;
++					currentAction=DrawPolygon;
++					currentArea->addCoord(drawStart);
++					currentSelectionPoint=currentArea->selectionPoints()->last();
++					break;
++				case KImageMapEditor::Freehand :
++					currentAction=DrawFreehand;
++					currentArea->addCoord(drawStart);
++					currentSelectionPoint=currentArea->selectionPoints()->last();
++		 			currentArea->setFinished(false);
++			  		break;
+ 				default: break;
+ 			}
+ 		}
+@@ -434,12 +435,17 @@ void DrawZone::contentsMouseReleaseEvent
+ 	} else
+ 	if (currentAction==DrawFreehand)
+ 	{
++  	if ((currentArea->selectionPoints()->count()>2)
++  		&& (currentArea->selectionPoints()->first()->contains(drawEnd)
++  		 || (e->button()==RightButton)))
++  	{
+ 			currentArea->setFinished(true);
+ 			currentArea->simplifyCoords();
+   		currentAction=None;
+    		imageMapEditor->commandHistory()->addCommand(
+    			new CreateCommand( imageMapEditor, currentArea ), true);
+-	} else
++	} 
++   	} else
+ 	if (currentAction==MoveArea) {
+ 	    QPoint p1 = oldArea->rect().topLeft();
+ 	    QPoint p2 = imageMapEditor->selected()->rect().topLeft();
